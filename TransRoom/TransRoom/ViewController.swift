@@ -28,9 +28,12 @@ class ViewController: UIViewController {
         
         // Show statistics such as fps and timing information
         sceneView.showsStatistics = true
-        
+        sceneView.debugOptions = [ARSCNDebugOptions.showFeaturePoints, ARSCNDebugOptions.showWorldOrigin]
+
 //        // Set the scene to the view
 //        sceneView.scene = scene
+        //  自动光
+        sceneView.automaticallyUpdatesLighting = true
         
     }
     
@@ -58,10 +61,49 @@ class ViewController: UIViewController {
     }
     
     // MARK: - 私有方法
-    private func addPortal(withTransform transform: matrix_float4x4) {
+    func addPortal(withTransform transform: simd_float4x4) {
         isShow = true
-        let portalScene = SCNScene(named: "art.scnassets/tjgc.scn")
+        guard let portalScene = SCNScene(named: "art.scnassets/tjgc.scn") else {
+            return
+        }
         
+        let portalNode = portalScene.rootNode.childNode(withName: "tjgc", recursively: true)!
+        sceneView.scene.rootNode.addChildNode(portalNode)
+        portalNode.position = SCNVector3Make(transform.columns.3.x, transform.columns.3.y - 0.1, transform.columns.3.z - 0.1)
+        
+        self.addPlane(nodeName: "roof", portalNode: portalNode, imageName: "top")
+        self.addPlane(nodeName: "floor", portalNode: portalNode, imageName: "bottom")
+        self.addWalls(nodeName: "backWall", portalNode: portalNode, imageName: "back")
+        self.addWalls(nodeName: "sideWallA", portalNode: portalNode, imageName: "sideA")
+        self.addWalls(nodeName: "sideWallB", portalNode: portalNode, imageName: "sideB")
+        self.addWalls(nodeName: "sideDoorA", portalNode: portalNode, imageName: "sideDoorA")
+        self.addWalls(nodeName: "sideDoorB", portalNode: portalNode, imageName: "sideDoorB")
+        self.addWalls(nodeName: "doorHeader", portalNode: portalNode, imageName: "top")
+        self.addNode(nodeName: "tower", portalNode: portalNode, imageName: "")
+    }
+    
+    func addPlane(nodeName: String, portalNode: SCNNode, imageName: String) {
+        let child = portalNode.childNode(withName: nodeName, recursively: true)
+        child?.geometry?.firstMaterial?.diffuse.contents = UIImage(named: "art.scnassets/textures/\(imageName).png")
+        child?.renderingOrder = 200
+    }
+    
+    func addWalls(nodeName: String, portalNode: SCNNode, imageName: String) {
+        let child = portalNode.childNode(withName: nodeName, recursively: true)
+        child?.geometry?.firstMaterial?.diffuse.contents = UIImage(named: "art.scnassets/textures/\(imageName).png")
+        child?.renderingOrder = 200
+        
+        if let mask = child?.childNode(withName: "mask", recursively: true) {
+            // 设置渲染顺序，渲染顺序小的优先渲染，从而通过让优先渲染的节点透明使后面渲染的节点也透明
+            mask.renderingOrder = 150
+            mask.geometry?.firstMaterial?.transparency = 0.00001
+        }
+        
+    }
+    
+    func addNode(nodeName: String, portalNode: SCNNode, imageName: String) {
+        let child = portalNode.childNode(withName: nodeName, recursively: true)
+        child?.renderingOrder = 200
     }
 
 }
