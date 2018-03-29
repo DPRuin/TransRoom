@@ -10,9 +10,15 @@ import UIKit
 import SceneKit
 import ARKit
 
-class ViewController: UIViewController, ARSCNViewDelegate {
+class ViewController: UIViewController {
 
     @IBOutlet var sceneView: ARSCNView!
+    // var session: ARSession!
+    private var worldTrackingConfigration: ARWorldTrackingConfiguration!
+    private var planeAnthor: ARPlaneAnchor!
+    
+    /// 是否显示房子
+    var isShow: Bool = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -23,21 +29,20 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         // Show statistics such as fps and timing information
         sceneView.showsStatistics = true
         
-        // Create a new scene
-        let scene = SCNScene(named: "art.scnassets/ship.scn")!
+//        // Set the scene to the view
+//        sceneView.scene = scene
         
-        // Set the scene to the view
-        sceneView.scene = scene
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
         // Create a session configuration
-        let configuration = ARWorldTrackingConfiguration()
+        worldTrackingConfigration = ARWorldTrackingConfiguration()
+        worldTrackingConfigration.planeDetection = .horizontal
 
         // Run the view's session
-        sceneView.session.run(configuration)
+        sceneView.session.run(worldTrackingConfigration)
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -51,17 +56,33 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         super.didReceiveMemoryWarning()
         // Release any cached data, images, etc that aren't in use.
     }
-
-    // MARK: - ARSCNViewDelegate
     
-/*
-    // Override to create and configure nodes for anchors added to the view's session.
-    func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode? {
-        let node = SCNNode()
-     
-        return node
+    // MARK: - 私有方法
+    private func addPortal(withTransform transform: matrix_float4x4) {
+        isShow = true
+        let portalScene = SCNScene(named: "art.scnassets/tjgc.scn")
+        
     }
-*/
+
+}
+
+extension ViewController: ARSCNViewDelegate {
+    
+    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
+        if anchor is ARPlaneAnchor {
+            planeAnthor = anchor as! ARPlaneAnchor
+            
+            if isShow == false {
+                // 添加传送门
+                addPortal(withTransform: planeAnthor.transform)
+            }
+        }
+    }
+    
+    
+}
+
+extension ViewController: ARSessionObserver {
     
     func session(_ session: ARSession, didFailWithError error: Error) {
         // Present an error message to the user
