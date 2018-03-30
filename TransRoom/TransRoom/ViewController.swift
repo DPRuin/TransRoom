@@ -34,7 +34,6 @@ class ViewController: UIViewController {
 //        sceneView.scene = scene
         //  自动光
         sceneView.automaticallyUpdatesLighting = true
-        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -96,6 +95,7 @@ class ViewController: UIViewController {
         if let mask = child?.childNode(withName: "mask", recursively: true) {
             // 设置渲染顺序，渲染顺序小的优先渲染，从而通过让优先渲染的节点透明使后面渲染的节点也透明
             mask.renderingOrder = 150
+            
             mask.geometry?.firstMaterial?.transparency = 0.00001
         }
         
